@@ -142,7 +142,7 @@ class TweetImLive(App):
         self.popup.content.add_widget(Button(text='Save', on_press=self.save_settings))
 
     def save_settings(self, instance):
-        self.message = '"' + self.message_input.text + '"'
+        self.message = self.message_input.text
         self.username = self.username_input.text
         self.client_id = self.client_id_input.text
         self.client_secret = self.client_secret_input.text
@@ -150,7 +150,7 @@ class TweetImLive(App):
         self.api_key_secret = self.api_key_secret_input.text
         self.access_token = self.access_token_input.text
         self.access_token_secret = self.access_token_secret_input.text
-        Config.set('twitter', 'message', self.message)
+        Config.set('twitter', 'message', '"' + self.message + '"')
         Config.set('twitch', 'username', self.username)
         Config.set('twitch', 'client_id', self.client_id)
         Config.set('twitch', 'client_secret', self.client_secret)
