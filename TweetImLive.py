@@ -40,12 +40,12 @@ class TweetImLive(App):
             Config.adddefaultsection('twitter')
             Config.set('twitch', 'client_id', 'YOUR_CLIENT_ID')
             Config.set('twitch', 'client_secret', 'YOUR_CLIENT_SECRET')
-            Config.set('twitter', 'message', 'YOUR_MESSAGE')
+            Config.set('twitter', 'message', '"I\'m #live #streaming stream_game on #Twitch! \n stream_title \n https://www.twitch.tv/username"')
             Config.set('twitter', 'api_key', 'YOUR_API_KEY')
             Config.set('twitter', 'api_key_secret', 'YOUR_API_KEY_SECRET')
             Config.set('twitter', 'access_token', 'YOUR_ACCESS_TOKEN')
             Config.set('twitter', 'access_token_secret', 'YOUR_ACCESS_TOKEN_SECRET')
-            Config.set('twitch', 'username', 'I\'m #live #streaming stream_game on #Twitch! \n stream_title \n https://www.twitch.tv/username')
+            Config.set('twitch', 'username', 'YOUR_USERNAME')
             Config.write()
 
         self.read_settings(self)
@@ -57,29 +57,36 @@ class TweetImLive(App):
     def get_access_token(self, instance):
         access_token_url = 'https://id.twitch.tv/oauth2/token?client_id=' + self.client_id + '&client_secret=' + self.client_secret + '&grant_type=client_credentials'
         access_token_response = requests.post(access_token_url)
+        if access_token_response.status_code == 400:
+            print('Client ID or Client Secret is wrong')
+            return False
+        
         access_token = access_token_response.json()['access_token']
         return access_token
 
     def get_stream_info(self, instance):
         access_token = self.get_access_token(self)
-        stream_url = 'https://api.twitch.tv/helix/streams?user_login=' + self.username
-        stream_response = requests.get(stream_url, headers={'Authorization': 'Bearer ' + access_token, 'Client-ID': self.client_id})
-        stream_json = stream_response.json()
+        if access_token != False:
+            stream_url = 'https://api.twitch.tv/helix/streams?user_login=' + self.username
+            stream_response = requests.get(stream_url, headers={'Authorization': 'Bearer ' + access_token, 'Client-ID': self.client_id})
+            stream_json = stream_response.json()
 
-        if stream_json['data'] != []:
-            live = True
-            stream_title = stream_json['data'][0]['title']
-            stream_game = stream_json['data'][0]['game_name']
-            stream_thumbnail = stream_json['data'][0]['thumbnail_url']
-            stream_thumbnail = stream_thumbnail.replace('{width}', '1920').replace('{height}', '1080')
-            stream_thumbnail_response = requests.get(stream_thumbnail)
-            stream_thumbnail_file = open('stream_thumbnail.jpg', 'wb')
-            stream_thumbnail_file.write(stream_thumbnail_response.content)
-            stream_thumbnail_file.close()
-            return live, stream_title, stream_game
+            if stream_json['data'] != []:
+                live = True
+                stream_title = stream_json['data'][0]['title']
+                stream_game = stream_json['data'][0]['game_name']
+                stream_thumbnail = stream_json['data'][0]['thumbnail_url']
+                stream_thumbnail = stream_thumbnail.replace('{width}', '1920').replace('{height}', '1080')
+                stream_thumbnail_response = requests.get(stream_thumbnail)
+                stream_thumbnail_file = open('stream_thumbnail.jpg', 'wb')
+                stream_thumbnail_file.write(stream_thumbnail_response.content)
+                stream_thumbnail_file.close()
+                return live, stream_title, stream_game
+            else:
+                live = False
+                return live, '', ''
         else:
-            live = False
-            return live, '', ''
+            return False, '', ''
 
     def tweet(self, instance):
         if self.live:
@@ -130,7 +137,7 @@ class TweetImLive(App):
         self.popup.content.add_widget(Button(text='Save', on_press=self.save_settings))
 
     def save_settings(self, instance):
-        self.message = self.message_input.text
+        self.message = '"' + self.message_input.text + '"'
         self.username = self.username_input.text
         self.client_id = self.client_id_input.text
         self.client_secret = self.client_secret_input.text
@@ -153,7 +160,7 @@ class TweetImLive(App):
 
     def read_settings(self, instance):
         Config.read('config.ini')
-        self.message = Config.get('twitter', 'message')
+        self.message = Config.get('twitter', 'message').replace('"', '')
         self.username = Config.get('twitch', 'username')
         self.client_id = Config.get('twitch', 'client_id')
         self.client_secret = Config.get('twitch', 'client_secret')
