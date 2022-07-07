@@ -1,6 +1,10 @@
 /config.ini
 /config-backup.ini
-/output
+/build
+/dist/TweetImLive
 /stream_thumbnail.jpg
 /TweetImLive.afdesign
 /TweetImLive.png
+/TweetImLive.svg
+/TweetImLive.ico
+/TweetImLive.spec
