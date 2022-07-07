@@ -1,6 +1,6 @@
 # TweetImLive
 
-Send a custom Tweet including category, title, and thumbnail when you go live on Twitch.
+Send a custom Tweet including category, title, url, and thumbnail when you go live on Twitch.
 GUI built using Kivy.
 
 ### Requirements:
